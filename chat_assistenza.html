@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assistenza Tecnica — TecnoService Industriale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Hanken+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2236;
+    --border: #1e2d45;
+    --accent: #2ca1fe;
+    --accent-dim: rgba(44,161,254,0.12);
+    --accent-glow: rgba(44,161,254,0.25);
+    --text: #e8edf5;
+    --text-muted: #6b7fa3;
+    --text-dim: #94a3b8;
+    --green: #22c55e;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --green-dim: rgba(34,197,94,0.12);
+    --amber-dim: rgba(245,158,11,0.12);
+    --red-dim: rgba(239,68,68,0.12);
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Hanken Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-mark {
+    width: 38px; height: 38px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    font-size: 14px;
+    color: #fff;
+    letter-spacing: -0.5px;
+    flex-shrink: 0;
+  }
+
+  .header-text h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .header-text p {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 300;
+  }
+
+  .header-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .btn-tickets {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 7px 14px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-family: 'Hanken Grotesk', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-tickets:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .ticket-count {
+    background: var(--accent);
+    color: #fff;
+    border-radius: 50%;
+    width: 18px; height: 18px;
+    font-size: 11px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  main {
+    flex: 1;
+    display: flex;
+    max-width: 1100px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 32px 24px;
+    gap: 28px;
+  }
+
+  /* ── CHAT AREA ── */
+  .chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  /* ── STEP INDICATOR ── */
+  .step-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+
+  .step-dot {
+    height: 3px;
+    flex: 1;
+    border-radius: 2px;
+    background: var(--border);
+    transition: background 0.4s;
+  }
+
+  .step-dot.active { background: var(--accent); }
+  .step-dot.done { background: var(--green); }
+
+  /* ── ONBOARDING FORM ── */
+  #onboarding {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 36px;
+    max-width: 480px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  #onboarding h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  #onboarding p {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .field input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .field input:focus { border-color: var(--accent); }
+  .field input::placeholder { color: var(--text-muted); }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: var(--radius);
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+  }
+
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* ── CHAT WINDOW ── */
+  #chat-window {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    gap: 16px;
+  }
+
+  .chat-header-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .user-badge {
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .chat-header-bar .user-info {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .btn-reset {
+    margin-left: auto;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'Hanken Grotesk', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .btn-reset:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── MESSAGES ── */
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 4px 2px;
+    min-height: 320px;
+    max-height: 420px;
+  }
+
+  .messages::-webkit-scrollbar { width: 4px; }
+  .messages::-webkit-scrollbar-track { background: transparent; }
+  .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .msg {
+    display: flex;
+    gap: 10px;
+    animation: fadeSlide 0.25s ease;
+  }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg.user { flex-direction: row-reverse; }
+
+  .msg-avatar {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .msg.ai .msg-avatar {
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+  }
+
+  .msg.user .msg-avatar {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  .msg-bubble {
+    max-width: 75%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .msg.ai .msg-bubble {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top-left-radius: 2px;
+    color: var(--text);
+  }
+
+  .msg.user .msg-bubble {
+    background: var(--accent-dim);
+    border: 1px solid rgba(44,161,254,0.3);
+    border-top-right-radius: 2px;
+    color: var(--text);
+  }
+
+  /* ── TYPING INDICATOR ── */
+  .typing-indicator {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 2px;
+  }
+
+  .typing-indicator .msg-avatar {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .typing-dots {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    border-top-left-radius: 2px;
+    padding: 12px 16px;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+
+  .typing-dots span {
+    width: 6px; height: 6px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    animation: bounce 1.2s infinite;
+  }
+
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-5px); opacity: 1; }
+  }
+
+  /* ── INPUT BAR ── */
+  .input-area {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  #user-input {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-size: 14px;
+    resize: none;
+    outline: none;
+    line-height: 1.5;
+    max-height: 120px;
+    overflow-y: auto;
+    padding: 2px 0;
+  }
+
+  #user-input::placeholder { color: var(--text-muted); }
+
+  #send-btn {
+    background: var(--accent);
+    border: none;
+    color: #fff;
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+  }
+
+  #send-btn:hover { opacity: 0.85; }
+  #send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* ── TICKET PREVIEW ── */
+  .ticket-preview {
+    background: var(--surface);
+    border: 1px solid var(--green);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    animation: fadeSlide 0.3s ease;
+  }
+
+  .ticket-preview h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    color: var(--green);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ticket-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .ticket-field {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+
+  .ticket-field .tf-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .ticket-field .tf-value {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .ticket-field.full { grid-column: 1 / -1; }
+
+  .urgency-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .urgency-alta { background: var(--red-dim); color: var(--red); border: 1px solid var(--red); }
+  .urgency-media { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber); }
+  .urgency-bassa { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
+
+  .ticket-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn-confirm {
+    flex: 1;
+    background: var(--green);
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .btn-confirm:hover { opacity: 0.85; }
+
+  .btn-edit {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-edit:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── TICKET DB PANEL ── */
+  #ticket-panel {
+    width: 340px;
+    flex-shrink: 0;
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  #ticket-panel.visible { display: flex; }
+
+  .panel-header {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-header span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  .tickets-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    max-height: calc(100vh - 180px);
+  }
+
+  .ticket-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    cursor: default;
+    transition: border-color 0.2s;
+  }
+
+  .ticket-card:hover { border-color: var(--accent); }
+
+  .ticket-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .ticket-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .ticket-card h4 {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+
+  .ticket-card .tc-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .empty-state .icon { font-size: 32px; margin-bottom: 10px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    main { flex-direction: column; padding: 16px; }
+    #ticket-panel { width: 100%; max-height: 300px; }
+    header { padding: 14px 16px; }
+    .ticket-fields { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">TS</div>
+  <div class="header-text">
+    <h1>TecnoService Industriale</h1>
+    <p>Assistenza tecnica · Bologna</p>
+  </div>
+  <div class="header-actions">
+    <button class="btn-tickets" onclick="togglePanel()">
+      🎫 Ticket aperti
+      <span class="ticket-count" id="tc-count">0</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="chat-container">
+
+    <!-- STEP BAR -->
+    <div class="step-bar">
+      <div class="step-dot active" id="s1"></div>
+      <div class="step-dot" id="s2"></div>
+      <div class="step-dot" id="s3"></div>
+      <div class="step-dot" id="s4"></div>
+    </div>
+
+    <!-- ONBOARDING -->
+    <div id="onboarding">
+      <h2>Apri una richiesta</h2>
+      <p>Inserisci i tuoi dati, poi descrivi il problema. L'assistente raccoglierà le informazioni necessarie e aprirà un ticket per te.</p>
+      <div class="field-group">
+        <div class="field">
+          <label>Nome e cognome</label>
+          <input type="text" id="f-nome" placeholder="Es. Mario Rossi" />
+        </div>
+        <div class="field">
+          <label>Email aziendale</label>
+          <input type="email" id="f-email" placeholder="mario.rossi@azienda.it" />
+        </div>
+        <div class="field">
+          <label>Azienda</label>
+          <input type="text" id="f-azienda" placeholder="Es. Fonderia Emiliana Srl" />
+        </div>
+      </div>
+      <button class="btn-primary" onclick="startChat()">Avvia la chat →</button>
+    </div>
+
+    <!-- CHAT WINDOW -->
+    <div id="chat-window">
+
+      <div class="chat-header-bar">
+        <div class="user-badge" id="user-initials">--</div>
+        <div class="user-info" id="user-label">–</div>
+        <button class="btn-reset" onclick="resetAll()">↩ Nuova sessione</button>
+      </div>
+
+      <div class="messages" id="messages"></div>
+
+      <div class="typing-indicator" id="typing">
+        <div class="msg-avatar">AI</div>
+        <div class="typing-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+
+      <div id="ticket-preview-area"></div>
+
+      <div class="input-area">
+        <textarea id="user-input" rows="1" placeholder="Descrivi il problema…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button id="send-btn" onclick="sendMessage()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TICKET PANEL -->
+  <div id="ticket-panel">
+    <div class="panel-header">
+      Ticket aperti
+      <span id="panel-count">0 ticket</span>
+    </div>
+    <div class="tickets-list" id="tickets-list">
+      <div class="empty-state">
+        <div class="icon">📋</div>
+        Nessun ticket ancora.<br>Avvia una chat per aprirne uno.
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ── STATE ──
+let userName = '', userEmail = '', userAzienda = '';
+let conversation = [];
+let ticketPending = null;
+let awaitingTicketConfirm = false;
+let chatStep = 1;
+
+const SYSTEM_PROMPT = `Sei l'assistente virtuale di TecnoService Industriale Srl, azienda di manutenzione tecnica industriale con sede a Bologna.
+
+Il tuo compito è raccogliere, tramite una conversazione naturale, tutte le informazioni necessarie per aprire un ticket di assistenza tecnica.
+
+Le informazioni che devi raccogliere sono:
+1. Tipo di macchinario o impianto coinvolto (es. compressore, gruppo frigo, quadro elettrico, pompa, PLC...)
+2. Descrizione del problema o sintomo osservato
+3. Da quando si manifesta il problema
+4. Se il macchinario è fermo o ancora operativo
+5. Urgenza percepita dal cliente (Alta / Media / Bassa)
+6. Eventuali note aggiuntive utili
+
+Regole di comportamento:
+- Fai una domanda alla volta, in modo conversazionale e professionale
+- Usa un tono cordiale ma efficiente, da professionista del settore
+- Quando hai raccolto tutte le informazioni necessarie (almeno punti 1-5), genera il riepilogo del ticket
+- Per generare il ticket, rispondi ESATTAMENTE con un blocco JSON nel formato seguente, preceduto dalla frase "Ho raccolto tutte le informazioni. Ecco il riepilogo della tua richiesta:":
+
+TICKET_JSON:
+{
+  "macchinario": "...",
+  "sintomo": "...",
+  "da_quando": "...",
+  "operativo": "Sì/No/Parzialmente",
+  "urgenza": "Alta/Media/Bassa",
+  "note": "...",
+  "categoria": "Compressori/Refrigerazione/Elettrico/Meccanica/PLC/Altro"
+}
+
+- Non inventare informazioni non fornite dal cliente
+- Se il cliente è vago, chiedi di specificare
+- Non fare più di 6 domande in totale prima di generare il ticket
+- Rispondi sempre in italiano`;
+
+// ── INIT ──
+function startChat() {
+  const nome = document.getElementById('f-nome').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const azienda = document.getElementById('f-azienda').value.trim();
+
+  if (!nome || !email || !azienda) {
+    alert('Compila tutti i campi per continuare.');
+    return;
+  }
+
+  userName = nome;
+  userEmail = email;
+  userAzienda = azienda;
+
+  document.getElementById('onboarding').style.display = 'none';
+  document.getElementById('chat-window').style.display = 'flex';
+
+  const initials = nome.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  document.getElementById('user-initials').textContent = initials;
+  document.getElementById('user-label').textContent = `${nome} · ${azienda}`;
+
+  setStep(2);
+
+  const welcome = `Ciao ${nome.split(' ')[0]}, sono l'assistente di TecnoService. Raccolgo le informazioni necessarie per aprire la tua richiesta di assistenza.\n\nPer iniziare: quale macchinario o impianto ha il problema?`;
+  addMsg('ai', welcome);
+}
+
+// ── MESSAGING ──
+async function sendMessage() {
+  const input = document.getElementById('user-input');
+  const text = input.value.trim();
+  if (!text || awaitingTicketConfirm) return;
+
+  input.value = '';
+  autoResize(input);
+  addMsg('user', text);
+
+  conversation.push({ role: 'user', content: text });
+
+  setStep(3);
+  showTyping(true);
+  document.getElementById('send-btn').disabled = true;
+
+  try {
+    const response = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: conversation
+      })
+    });
+
+    const data = await response.json();
+    const reply = data.content?.[0]?.text || 'Errore nella risposta.';
+
+    conversation.push({ role: 'assistant', content: reply });
+
+    showTyping(false);
+
+    // Check if ticket JSON is present
+    if (reply.includes('TICKET_JSON:')) {
+      const parts = reply.split('TICKET_JSON:');
+      const intro = parts[0].trim();
+      addMsg('ai', intro);
+
+      try {
+        const jsonStr = parts[1].trim();
+        const ticketData = JSON.parse(jsonStr);
+        ticketPending = ticketData;
+        showTicketPreview(ticketData);
+        setStep(4);
+      } catch(e) {
+        addMsg('ai', 'Ho avuto un problema nel generare il ticket. Puoi riprovare?');
+      }
+    } else {
+      addMsg('ai', reply);
+    }
+
+  } catch(err) {
+    showTyping(false);
+    addMsg('ai', 'Errore di connessione. Controlla che il proxy Netlify sia attivo e riprova.');
+  }
+
+  document.getElementById('send-btn').disabled = false;
+}
+
+// ── TICKET PREVIEW ──
+function showTicketPreview(data) {
+  awaitingTicketConfirm = true;
+  document.getElementById('user-input').disabled = true;
+  document.getElementById('send-btn').disabled = true;
+
+  const urgencyClass = {
+    'Alta': 'urgency-alta',
+    'Media': 'urgency-media',
+    'Bassa': 'urgency-bassa'
+  }[data.urgenza] || 'urgency-media';
+
+  const area = document.getElementById('ticket-preview-area');
+  area.innerHTML = `
+    <div class="ticket-preview">
+      <h3>✅ Riepilogo richiesta</h3>
+      <div class="ticket-fields">
+        <div class="ticket-field">
+          <div class="tf-label">Macchinario</div>
+          <div class="tf-value">${data.macchinario}</div>
+        </div>
+        <div class="ticket-field">
+          <div class="tf-label">Categoria</div>
+          <div class="tf-value">${data.categoria}</div>
+        </div>
+        <div class="ticket-field full">
+          <div class="tf-label">Sintomo</div>
+          <div class="tf-value">${data.sintomo}</div>
+        </div>
+        <div class="ticket-field">
+          <div class="tf-label">Da quando</div>
+          <div class="tf-value">${data.da_quando}</div>
+        </div>
+        <div class="ticket-field">
+          <div class="tf-label">Impianto operativo</div>
+          <div class="tf-value">${data.operativo}</div>
+        </div>
+        <div class="ticket-field">
+          <div class="tf-label">Urgenza</div>
+          <div class="tf-value"><span class="urgency-badge ${urgencyClass}">${data.urgenza}</span></div>
+        </div>
+        ${data.note ? `<div class="ticket-field full">
+          <div class="tf-label">Note</div>
+          <div class="tf-value">${data.note}</div>
+        </div>` : ''}
+      </div>
+      <div class="ticket-actions">
+        <button class="btn-confirm" onclick="confirmTicket()">Conferma e apri ticket</button>
+        <button class="btn-edit" onclick="editTicket()">Modifica</button>
+      </div>
+    </div>`;
+
+  area.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ── CONFIRM TICKET ──
+function confirmTicket() {
+  if (!ticketPending) return;
+
+  const ticket = {
+    id: generateId(),
+    timestamp: new Date().toISOString(),
+    cliente: { nome: userName, email: userEmail, azienda: userAzienda },
+    ...ticketPending,
+    stato: 'Aperto'
+  };
+
+  saveTicket(ticket);
+  renderTickets();
+  updateCount();
+
+  document.getElementById('ticket-preview-area').innerHTML = '';
+  awaitingTicketConfirm = false;
+  ticketPending = null;
+
+  addMsg('ai', `✅ Ticket **${ticket.id}** aperto con successo. Riceverai un riscontro entro 2 ore lavorative all'indirizzo ${userEmail}.\n\nHai altre problematiche da segnalare?`);
+
+  document.getElementById('user-input').disabled = false;
+  document.getElementById('send-btn').disabled = false;
+
+  // Show panel
+  document.getElementById('ticket-panel').classList.add('visible');
+  setStep(2);
+}
+
+function editTicket() {
+  awaitingTicketConfirm = false;
+  ticketPending = null;
+  document.getElementById('ticket-preview-area').innerHTML = '';
+  document.getElementById('user-input').disabled = false;
+  document.getElementById('send-btn').disabled = false;
+  addMsg('ai', 'Nessun problema. Dimmi cosa vuoi correggere o aggiungere.');
+  setStep(3);
+}
+
+// ── STORAGE ──
+function saveTicket(ticket) {
+  const existing = JSON.parse(localStorage.getItem('ts_tickets') || '[]');
+  existing.unshift(ticket);
+  localStorage.setItem('ts_tickets', JSON.stringify(existing));
+}
+
+function loadTickets() {
+  return JSON.parse(localStorage.getItem('ts_tickets') || '[]');
+}
+
+function renderTickets() {
+  const tickets = loadTickets();
+  const list = document.getElementById('tickets-list');
+  const count = document.getElementById('panel-count');
+
+  count.textContent = `${tickets.length} ticket`;
+
+  if (tickets.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">📋</div>Nessun ticket ancora.</div>`;
+    return;
+  }
+
+  list.innerHTML = tickets.map(t => {
+    const urgClass = { Alta: 'urgency-alta', Media: 'urgency-media', Bassa: 'urgency-bassa' }[t.urgenza] || 'urgency-media';
+    const date = new Date(t.timestamp).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    return `
+      <div class="ticket-card">
+        <div class="ticket-card-top">
+          <span class="ticket-id">${t.id}</span>
+          <span class="urgency-badge ${urgClass}">${t.urgenza}</span>
+        </div>
+        <h4>${t.macchinario}</h4>
+        <div class="tc-meta">
+          <span>${t.cliente.azienda}</span>
+          <span>·</span>
+          <span>${t.categoria}</span>
+          <span>·</span>
+          <span>${date}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function updateCount() {
+  const n = loadTickets().length;
+  document.getElementById('tc-count').textContent = n;
+}
+
+// ── UI HELPERS ──
+function addMsg(role, text) {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+
+  const avatar = role === 'ai' ? 'AI' : userName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+
+  // Simple markdown bold
+  const formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+
+  div.innerHTML = `
+    <div class="msg-avatar">${avatar}</div>
+    <div class="msg-bubble">${formatted}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping(show) {
+  document.getElementById('typing').style.display = show ? 'flex' : 'none';
+  if (show) {
+    const msgs = document.getElementById('messages');
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+}
+
+function setStep(n) {
+  chatStep = n;
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById(`s${i}`);
+    if (i < n) dot.className = 'step-dot done';
+    else if (i === n) dot.className = 'step-dot active';
+    else dot.className = 'step-dot';
+  }
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function togglePanel() {
+  const panel = document.getElementById('ticket-panel');
+  panel.classList.toggle('visible');
+  renderTickets();
+}
+
+function generateId() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `TS-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${Math.floor(Math.random()*900+100)}`;
+}
+
+function resetAll() {
+  if (!confirm('Vuoi iniziare una nuova sessione? La chat verrà azzerata (i ticket salvati rimangono).')) return;
+  conversation = [];
+  ticketPending = null;
+  awaitingTicketConfirm = false;
+  document.getElementById('messages').innerHTML = '';
+  document.getElementById('ticket-preview-area').innerHTML = '';
+  document.getElementById('chat-window').style.display = 'none';
+  document.getElementById('onboarding').style.display = 'block';
+  document.getElementById('f-nome').value = '';
+  document.getElementById('f-email').value = '';
+  document.getElementById('f-azienda').value = '';
+  document.getElementById('user-input').disabled = false;
+  document.getElementById('send-btn').disabled = false;
+  setStep(1);
+}
+
+// ── INIT ON LOAD ──
+updateCount();
+renderTickets();
+</script>
+</body>
+</html>
