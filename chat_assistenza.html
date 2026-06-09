@@ -835,23 +835,27 @@ async function sendMessage() {
 
     showTyping(false);
 
-    // Check if ticket JSON is present
-    if (reply.includes('TICKET_JSON:')) {
-      const parts = reply.split('TICKET_JSON:');
-      const intro = parts[0].trim();
-      addMsg('ai', intro);
-
+    // Check if ticket JSON is present — parsing robusto con regex
+    const jsonMatch = reply.match(/\{[\s\S]*?"macchinario"[\s\S]*?"urgenza"[\s\S]*?\}/);
+    if (jsonMatch) {
+      let intro = reply;
+      if (reply.includes("TICKET_JSON:")) {
+        intro = reply.split("TICKET_JSON:")[0].trim();
+      } else {
+        intro = reply.substring(0, reply.indexOf("{")).trim();
+      }
+      intro = intro.replace(/---+/g, "").trim();
+      if (intro) addMsg("ai", intro);
       try {
-        const jsonStr = parts[1].trim();
-        const ticketData = JSON.parse(jsonStr);
+        const ticketData = JSON.parse(jsonMatch[0]);
         ticketPending = ticketData;
         showTicketPreview(ticketData);
         setStep(4);
       } catch(e) {
-        addMsg('ai', 'Ho avuto un problema nel generare il ticket. Puoi riprovare?');
+        addMsg("ai", "Ho avuto un problema nel generare il ticket. Puoi riprovare?");
       }
     } else {
-      addMsg('ai', reply);
+      addMsg("ai", reply);
     }
 
   } catch(err) {
