@@ -752,25 +752,24 @@ Le informazioni che devi raccogliere sono:
 Regole di comportamento:
 - Fai una domanda alla volta, in modo conversazionale e professionale
 - Usa un tono cordiale ma efficiente, da professionista del settore
-- Quando hai raccolto tutte le informazioni necessarie (almeno punti 1-5), genera il riepilogo del ticket
-- Per generare il ticket, rispondi ESATTAMENTE con un blocco JSON nel formato seguente, preceduto dalla frase "Ho raccolto tutte le informazioni. Ecco il riepilogo della tua richiesta:":
-
-TICKET_JSON:
-{
-  "macchinario": "...",
-  "sintomo": "...",
-  "da_quando": "...",
-  "operativo": "Sì/No/Parzialmente",
-  "urgenza": "Alta/Media/Bassa",
-  "note": "...",
-  "categoria": "Compressori/Refrigerazione/Elettrico/Meccanica/PLC/Altro"
-}
-
-- Non inventare informazioni non fornite dal cliente
-- Se il cliente è vago, chiedi di specificare
-- Non fare più di 6 domande in totale prima di generare il ticket
+- Non fare più di 6 domande in totale
 - Rispondi sempre in italiano
-- Quando generi il ticket, scrivi SOLO la frase introduttiva e il blocco TICKET_JSON. Nessun testo aggiuntivo dopo il JSON: niente raccomandazioni, niente prossimi passi, niente numeri di emergenza, niente saluti. Il sistema gestisce tutto il resto automaticamente.`;
+- Quando hai raccolto tutte le informazioni necessarie (almeno punti 1-5), concludi la conversazione con ESATTAMENTE questa frase e nient'altro: "RACCOLTA_COMPLETATA"
+- Non aggiungere nulla dopo RACCOLTA_COMPLETATA`;
+
+const EXTRACT_PROMPT = `Sei un estrattore di dati strutturati. Analizza la conversazione fornita ed estrai le informazioni per il ticket di assistenza tecnica.
+
+Rispondi ESCLUSIVAMENTE con il JSON seguente, senza nessun testo prima o dopo, senza markdown, senza backtick:
+
+{"macchinario":"...","sintomo":"...","da_quando":"...","operativo":"Sì/No/Parzialmente","urgenza":"Alta/Media/Bassa","note":"...","categoria":"Compressori/Refrigerazione/Elettrico/Meccanica/PLC/Altro"}
+
+Regole:
+- Compila solo con informazioni realmente presenti nella conversazione
+- Se un campo non è stato menzionato, usa una stringa vuota ""
+- urgenza deve essere esattamente: Alta, Media, o Bassa
+- operativo deve essere esattamente: Sì, No, o Parzialmente
+- categoria deve essere uno dei valori indicati
+- Il JSON deve essere su una sola riga, valido e parsabile`;
 
 // ── INIT ──
 function startChat() {
@@ -817,12 +816,13 @@ async function sendMessage() {
   document.getElementById('send-btn').disabled = true;
 
   try {
+    // ── CHIAMATA 1: conversazione ──
     const response = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
-        max_tokens: 1000,
+        max_tokens: 600,
         system: SYSTEM_PROMPT,
         messages: conversation
       })
@@ -835,27 +835,44 @@ async function sendMessage() {
 
     showTyping(false);
 
-    // Check if ticket JSON is present — parsing robusto con regex
-    const jsonMatch = reply.match(/\{[\s\S]*?"macchinario"[\s\S]*?"urgenza"[\s\S]*?\}/);
-    if (jsonMatch) {
-      let intro = reply;
-      if (reply.includes("TICKET_JSON:")) {
-        intro = reply.split("TICKET_JSON:")[0].trim();
-      } else {
-        intro = reply.substring(0, reply.indexOf("{")).trim();
-      }
-      intro = intro.replace(/---+/g, "").trim();
-      if (intro) addMsg("ai", intro);
+    if (reply.includes('RACCOLTA_COMPLETATA')) {
+      // Mostra messaggio di transizione
+      addMsg('ai', 'Ho tutte le informazioni. Sto preparando il riepilogo...');
+      showTyping(true);
+
+      // ── CHIAMATA 2: estrazione JSON pura ──
+      const convText = conversation
+        .map(m => `${m.role === 'user' ? 'Cliente' : 'Assistente'}: ${m.content}`)
+        .join('\n');
+
+      const extractResp = await fetch('/api/claude', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-5',
+          max_tokens: 400,
+          system: EXTRACT_PROMPT,
+          messages: [{ role: 'user', content: convText }]
+        })
+      });
+
+      const extractData = await extractResp.json();
+      const jsonRaw = extractData.content?.[0]?.text?.trim() || '';
+
+      showTyping(false);
+
       try {
-        const ticketData = JSON.parse(jsonMatch[0]);
+        const ticketData = JSON.parse(jsonRaw);
         ticketPending = ticketData;
         showTicketPreview(ticketData);
         setStep(4);
       } catch(e) {
-        addMsg("ai", "Ho avuto un problema nel generare il ticket. Puoi riprovare?");
+        addMsg('ai', 'Ho avuto un problema nel generare il ticket. Puoi riprovare descrivendo il problema?');
+        console.error('JSON non valido:', jsonRaw);
       }
+
     } else {
-      addMsg("ai", reply);
+      addMsg('ai', reply);
     }
 
   } catch(err) {
