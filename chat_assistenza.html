@@ -672,6 +672,7 @@
         <div class="field">
           <label>Email aziendale</label>
           <input type="email" id="f-email" placeholder="mario.rossi@azienda.it" />
+          <p style="font-size:11px;color:var(--text-muted);margin-top:5px;">⚠ Demo: nessuna email verrà inviata realmente.</p>
         </div>
         <div class="field">
           <label>Azienda</label>
@@ -757,19 +758,12 @@ Regole di comportamento:
 - Quando hai raccolto tutte le informazioni necessarie (almeno punti 1-5), concludi la conversazione con ESATTAMENTE questa frase e nient'altro: "RACCOLTA_COMPLETATA"
 - Non aggiungere nulla dopo RACCOLTA_COMPLETATA`;
 
-const EXTRACT_PROMPT = `Sei un estrattore di dati strutturati. Analizza la conversazione fornita ed estrai le informazioni per il ticket di assistenza tecnica.
+const EXTRACT_PROMPT = `Estrai i dati dalla conversazione e restituisci SOLO questo JSON su una riga, nient'altro:
 
-Rispondi ESCLUSIVAMENTE con il JSON seguente, senza nessun testo prima o dopo, senza markdown, senza backtick:
+{"macchinario":"","sintomo":"","da_quando":"","operativo":"","urgenza":"","note":"","categoria":""}
 
-{"macchinario":"...","sintomo":"...","da_quando":"...","operativo":"Sì/No/Parzialmente","urgenza":"Alta/Media/Bassa","note":"...","categoria":"Compressori/Refrigerazione/Elettrico/Meccanica/PLC/Altro"}
-
-Regole:
-- Compila solo con informazioni realmente presenti nella conversazione
-- Se un campo non è stato menzionato, usa una stringa vuota ""
-- urgenza deve essere esattamente: Alta, Media, o Bassa
-- operativo deve essere esattamente: Sì, No, o Parzialmente
-- categoria deve essere uno dei valori indicati
-- Il JSON deve essere su una sola riga, valido e parsabile`;
+Valori ammessi — operativo: Sì / No / Parzialmente. urgenza: Alta / Media / Bassa. categoria: Compressori / Refrigerazione / Elettrico / Meccanica / PLC / Altro.
+Se un'informazione manca usa stringa vuota. NESSUN testo prima o dopo il JSON. NESSUN backtick. NESSUN markdown.`;
 
 // ── INIT ──
 function startChat() {
@@ -857,9 +851,17 @@ async function sendMessage() {
       });
 
       const extractData = await extractResp.json();
-      const jsonRaw = extractData.content?.[0]?.text?.trim() || '';
+      let jsonRaw = extractData.content?.[0]?.text?.trim() || '';
 
       showTyping(false);
+
+      // Pulizia robusta: rimuovi backtick, markdown, cerca il JSON tra { }
+      jsonRaw = jsonRaw.replace(/```json|```/g, '').trim();
+      const jsonStart = jsonRaw.indexOf('{');
+      const jsonEnd = jsonRaw.lastIndexOf('}');
+      if (jsonStart !== -1 && jsonEnd !== -1) {
+        jsonRaw = jsonRaw.substring(jsonStart, jsonEnd + 1);
+      }
 
       try {
         const ticketData = JSON.parse(jsonRaw);
@@ -958,7 +960,7 @@ function confirmTicket() {
   awaitingTicketConfirm = false;
   ticketPending = null;
 
-  addMsg('ai', `✅ Ticket **${ticket.id}** aperto con successo. Riceverai un riscontro entro 2 ore lavorative all'indirizzo ${userEmail}.\n\nHai altre problematiche da segnalare?`);
+  addMsg('ai', `✅ Ticket **${ticket.id}** registrato con successo.\n\n⚠ *Demo:* in uno scenario reale riceveresti un riscontro entro 2 ore lavorative all'indirizzo ${userEmail}. Questo è un ambiente dimostrativo — nessuna email viene inviata.\n\nHai altre problematiche da segnalare?`);
 
   document.getElementById('user-input').disabled = false;
   document.getElementById('send-btn').disabled = false;
