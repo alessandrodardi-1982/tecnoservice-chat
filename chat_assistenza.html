@@ -737,6 +737,12 @@ let conversation = [];
 let ticketPending = null;
 let awaitingTicketConfirm = false;
 let chatStep = 1;
+let currentTicketId = null;  // ID ticket appena creato, per eventuali modifiche
+let postTicketMode = false;  // true dopo creazione ticket, in attesa di risposta utente
+
+const CLOSING_WORDS = ['niente', 'nessuna', 'nessuno', 'no', 'ok', 'okay', 'va bene',
+  'tutto ok', 'tutto chiaro', 'grazie', 'perfetto', 'basta', 'no grazie',
+  'per ora niente', 'per ora no', 'è tutto', 'ho finito', 'nulla'];
 
 const SYSTEM_PROMPT = `Sei l'assistente virtuale di TecnoService Industriale Srl, azienda di manutenzione tecnica industriale con sede a Bologna.
 
@@ -802,6 +808,24 @@ async function sendMessage() {
   input.value = '';
   autoResize(input);
   addMsg('user', text);
+
+  // ── POST-TICKET MODE: intercetta risposta utente ──
+  if (postTicketMode) {
+    const lower = text.toLowerCase().trim();
+    const isClosing = CLOSING_WORDS.some(w => lower === w || lower.startsWith(w + ' ') || lower.endsWith(' ' + w) || lower === w + '.');
+    if (isClosing) {
+      postTicketMode = false;
+      currentTicketId = null;
+      addMsg('ai', `Perfetto. Il ticket è stato registrato e verrà preso in carico al più presto. Grazie per aver contattato TecnoService Industriale — a presto! 👋`);
+      return;
+    } else {
+      // Aggiunge info al ticket esistente
+      postTicketMode = false;
+      addMsg('ai', 'Capito, aggiungo questa informazione al ticket...');
+      updateExistingTicket(text);
+      return;
+    }
+  }
 
   conversation.push({ role: 'user', content: text });
 
@@ -959,8 +983,10 @@ function confirmTicket() {
   document.getElementById('ticket-preview-area').innerHTML = '';
   awaitingTicketConfirm = false;
   ticketPending = null;
+  currentTicketId = ticket.id;
+  postTicketMode = true;
 
-  addMsg('ai', `✅ Ticket **${ticket.id}** registrato con successo.\n\n⚠ *Demo:* in uno scenario reale riceveresti un riscontro entro 2 ore lavorative all'indirizzo ${userEmail}. Questo è un ambiente dimostrativo — nessuna email viene inviata.\n\nHai altre problematiche da segnalare?`);
+  addMsg('ai', `✅ Ticket **${ticket.id}** registrato con successo.\n\n⚠ *Demo:* in uno scenario reale il ticket verrebbe preso in carico al più presto. Nessuna email viene inviata in questo ambiente dimostrativo.\n\nHa altre informazioni da aggiungere al ticket, oppure possiamo considerare chiusa la segnalazione?`);
 
   document.getElementById('user-input').disabled = false;
   document.getElementById('send-btn').disabled = false;
@@ -987,6 +1013,38 @@ function saveTicket(ticket) {
   localStorage.setItem('ts_tickets', JSON.stringify(existing));
 }
 
+function updateExistingTicket(nuovaInfo) {
+  const tickets = JSON.parse(localStorage.getItem('ts_tickets') || '[]');
+  const idx = tickets.findIndex(t => t.id === currentTicketId);
+  if (idx === -1) {
+    addMsg('ai', 'Non ho trovato il ticket da aggiornare. Vuoi aprire una nuova segnalazione?');
+    return;
+  }
+
+  const ticket = tickets[idx];
+
+  // Aggiungi storico se non esiste
+  if (!ticket.storico) ticket.storico = [];
+  ticket.storico.push({
+    timestamp: ticket.timestamp,
+    note_originali: ticket.note
+  });
+
+  // Aggiorna le note con la nuova informazione
+  const timestampModifica = new Date().toLocaleString('it-IT');
+  ticket.note = ticket.note
+    ? ticket.note + ' | [Aggiornamento ' + timestampModifica + '] ' + nuovaInfo
+    : '[Aggiornamento ' + timestampModifica + '] ' + nuovaInfo;
+  ticket.timestamp_modifica = new Date().toISOString();
+
+  tickets[idx] = ticket;
+  localStorage.setItem('ts_tickets', JSON.stringify(tickets));
+  renderTickets();
+
+  addMsg('ai', `✅ Ticket **${currentTicketId}** aggiornato con la nuova informazione.\n\nLo storico della modifica è stato conservato. Altro da aggiungere, oppure è tutto?`);
+  postTicketMode = true; // rimane in post-ticket mode per eventuali ulteriori aggiunte
+}
+
 function loadTickets() {
   return JSON.parse(localStorage.getItem('ts_tickets') || '[]');
 }
@@ -1006,13 +1064,16 @@ function renderTickets() {
   list.innerHTML = tickets.map(t => {
     const urgClass = { Alta: 'urgency-alta', Media: 'urgency-media', Bassa: 'urgency-bassa' }[t.urgenza] || 'urgency-media';
     const date = new Date(t.timestamp).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    const modificaTag = t.storico && t.storico.length > 0
+      ? `<span style="font-size:10px;color:var(--amber);font-family:'JetBrains Mono',monospace;margin-left:4px;">✎ modificato</span>`
+      : '';
     return `
       <div class="ticket-card">
         <div class="ticket-card-top">
           <span class="ticket-id">${t.id}</span>
           <span class="urgency-badge ${urgClass}">${t.urgenza}</span>
         </div>
-        <h4>${t.macchinario}</h4>
+        <h4>${t.macchinario}${modificaTag}</h4>
         <div class="tc-meta">
           <span>${t.cliente.azienda}</span>
           <span>·</span>
