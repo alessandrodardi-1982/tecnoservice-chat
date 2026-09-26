@@ -923,6 +923,7 @@ let awaitingTicketConfirm = false;
 let chatStep = 1;
 let currentTicketId = null;  // ID ticket appena creato, per eventuali modifiche
 let postTicketMode = false;  // true dopo creazione ticket, in attesa di risposta utente
+let isModificaMode = false;  // true dopo click "Modifica", riesegue estrazione ticket
 
 const CLOSING_WORDS = ['niente', 'nessuna', 'nessuno', 'no', 'ok', 'okay', 'va bene',
   'tutto ok', 'tutto chiaro', 'grazie', 'perfetto', 'basta', 'no grazie',
@@ -983,6 +984,46 @@ function startChat() {
   addMsg('ai', welcome);
 }
 
+// ── TICKET EXTRACTION (chiamata 2) ──
+async function triggerTicketExtraction() {
+  showTyping(true);
+  const convText = conversation
+    .map(m => `${m.role === 'user' ? 'Cliente' : 'Assistente'}: ${m.content}`)
+    .join('\n');
+
+  const extractResp = await fetch('/api/claude', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-5',
+      max_tokens: 400,
+      system: EXTRACT_PROMPT,
+      messages: [{ role: 'user', content: convText }]
+    })
+  });
+
+  const extractData = await extractResp.json();
+  let jsonRaw = extractData.content?.[0]?.text?.trim() || '';
+  showTyping(false);
+
+  jsonRaw = jsonRaw.replace(/```json|```/g, '').trim();
+  const jsonStart = jsonRaw.indexOf('{');
+  const jsonEnd = jsonRaw.lastIndexOf('}');
+  if (jsonStart !== -1 && jsonEnd !== -1) {
+    jsonRaw = jsonRaw.substring(jsonStart, jsonEnd + 1);
+  }
+
+  try {
+    const ticketData = JSON.parse(jsonRaw);
+    ticketPending = ticketData;
+    showTicketPreview(ticketData);
+    setStep(4);
+  } catch(e) {
+    addMsg('ai', 'Ho avuto un problema nel generare il ticket. Puoi riprovare descrivendo il problema?');
+    console.error('JSON non valido:', jsonRaw);
+  }
+}
+
 // ── MESSAGING ──
 async function sendMessage() {
   const input = document.getElementById('user-input');
@@ -1038,51 +1079,15 @@ async function sendMessage() {
     showTyping(false);
 
     if (reply.includes('RACCOLTA_COMPLETATA')) {
-      // Mostra messaggio di transizione
       addMsg('ai', 'Ho tutte le informazioni. Sto preparando il riepilogo...');
-      showTyping(true);
-
-      // ── CHIAMATA 2: estrazione JSON pura ──
-      const convText = conversation
-        .map(m => `${m.role === 'user' ? 'Cliente' : 'Assistente'}: ${m.content}`)
-        .join('\n');
-
-      const extractResp = await fetch('/api/claude', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-5',
-          max_tokens: 400,
-          system: EXTRACT_PROMPT,
-          messages: [{ role: 'user', content: convText }]
-        })
-      });
-
-      const extractData = await extractResp.json();
-      let jsonRaw = extractData.content?.[0]?.text?.trim() || '';
-
-      showTyping(false);
-
-      // Pulizia robusta: rimuovi backtick, markdown, cerca il JSON tra { }
-      jsonRaw = jsonRaw.replace(/```json|```/g, '').trim();
-      const jsonStart = jsonRaw.indexOf('{');
-      const jsonEnd = jsonRaw.lastIndexOf('}');
-      if (jsonStart !== -1 && jsonEnd !== -1) {
-        jsonRaw = jsonRaw.substring(jsonStart, jsonEnd + 1);
-      }
-
-      try {
-        const ticketData = JSON.parse(jsonRaw);
-        ticketPending = ticketData;
-        showTicketPreview(ticketData);
-        setStep(4);
-      } catch(e) {
-        addMsg('ai', 'Ho avuto un problema nel generare il ticket. Puoi riprovare descrivendo il problema?');
-        console.error('JSON non valido:', jsonRaw);
-      }
-
+      await triggerTicketExtraction();
     } else {
       addMsg('ai', reply);
+      if (isModificaMode) {
+        isModificaMode = false;
+        addMsg('ai', 'Rigenero il riepilogo con le informazioni aggiornate...');
+        await triggerTicketExtraction();
+      }
     }
 
   } catch(err) {
@@ -1182,6 +1187,7 @@ function confirmTicket() {
 
 function editTicket() {
   awaitingTicketConfirm = false;
+  isModificaMode = true;
   ticketPending = null;
   document.getElementById('ticket-preview-area').innerHTML = '';
   document.getElementById('user-input').disabled = false;
@@ -1437,6 +1443,7 @@ function resetAll() {
   conversation = [];
   ticketPending = null;
   awaitingTicketConfirm = false;
+  isModificaMode = false;
   document.getElementById('messages').innerHTML = '';
   document.getElementById('ticket-preview-area').innerHTML = '';
   document.getElementById('chat-window').style.display = 'none';
